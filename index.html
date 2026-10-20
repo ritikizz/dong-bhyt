@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THÔNG TIN CHUYỂN KHOẢN ĐÓNG BHYT</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f2f4f8; padding: 20px; color: #333; }
+    
+    .container { background: white; padding: 25px; max-width: 450px; margin: auto; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); text-align: center; }
+    h2 { margin-bottom: 20px; color: #1f4fb3; font-size: 20px; }
+    
+    .form-group { text-align: left; margin-bottom: 15px; position: relative; }
+    label { font-weight: 600; display: block; margin-bottom: 6px; color: #444; font-size: 14px; }
+    
+    /* Custom Input & Dropdown */
+    input[type="text"] { width: 100%; padding: 12px; border-radius: 8px; border: 1.5px solid #d1d5db; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    input[type="text"]:focus { border-color: #2d6cdf; }
+    
+    .dropdown-list {
+        position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-radius: 8px; 
+        margin-top: 4px; max-height: 180px; overflow-y: auto; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .dropdown-item { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; transition: background 0.2s; font-size: 14px; }
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:hover { background: #f8fafc; color: #2d6cdf; font-weight: 500; }
+    .dropdown-empty { padding: 10px 12px; color: #9ca3af; text-align: center; font-style: italic; font-size: 14px; }
+
+    button.btn-primary { background: #2d6cdf; color: white; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: background 0.2s; }
+    button.btn-primary:hover:not(:disabled) { background: #1f4fb3; }
+    button:disabled { background: #cbd5e1; cursor: not-allowed; }
+    
+    .hidden { display: none !important; }
+    #qrContainer img { margin-top: 15px; max-width: 100%; border-radius: 12px; border: 1px solid #e5e7eb; padding: 8px; background: white; }
+    
+    /* --------- MODAL BANKING APP STYLES (COMPACT) --------- */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
+    .modal-content { background: #f2f4f8; padding: 0; border-radius: 14px; max-width: 360px; width: 100%; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    
+    .modal-header { background: white; padding: 15px; text-align: center; border-bottom: 1px solid #e5e7eb; }
+    .modal-header p { font-size: 13px; color: #4b5563; line-height: 1.4; margin: 0; }
+    
+    .modal-body { padding: 12px; }
+    
+    .bank-card { background: white; border-radius: 10px; padding: 12px; margin-bottom: 12px; border: 1px solid #e5e7eb; text-align: left; }
+    .bank-row { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #e5e7eb; }
+    .bank-row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .bank-label { font-size: 12px; color: #3b2a82; margin-bottom: 4px; display: block; font-weight: 500; }
+    .bank-value { font-size: 14.5px; color: #1f2937; font-weight: 500; word-break: break-word; }
+    
+    .amount-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 12px; border: 1px solid #e5e7eb; text-align: center; }
+    .amount-value { font-size: 24px; font-weight: 700; color: #1e1b4b; }
+    .amount-currency { font-size: 14px; font-weight: 600; color: #1e1b4b; }
+    
+    .content-card { background: white; border-radius: 10px; padding: 12px; border: 1px solid #e5e7eb; text-align: left; }
+    .content-label { font-size: 12px; color: #3b2a82; margin-bottom: 4px; font-weight: 500; display: block; }
+    .content-value { font-size: 14.5px; color: #1f2937; line-height: 1.4; word-break: break-word; font-weight: 400;}
+    
+    .modal-footer { padding: 12px; background: white; display: flex; gap: 8px; border-top: 1px solid #e5e7eb; }
+    .btn-secondary { flex: 1; background: #f3f4f6; color: #4b5563; padding: 10px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-secondary:hover { background: #e5e7eb; }
+    .btn-confirm { flex: 1; background: #2d6cdf; color: white; padding: 10px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-confirm:hover:not(:disabled) { background: #1f4fb3; }
+
+    .success-msg { color: #059669; font-weight: 600; margin-top: 20px; font-size: 15px; line-height: 1.5; padding: 15px; background: #ecfdf5; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<div class="container" id="mainContainer">
+    <h2>THÔNG TIN CHUYỂN KHOẢN BHYT</h2>
+    
+    <div class="form-group" id="classGroup">
+        <label>Chọn Lớp:</label>
+        <input type="text" id="classInput" placeholder="Gõ để tìm hoặc chọn lớp..." autocomplete="off">
+        <div id="classDropdown" class="dropdown-list hidden"></div>
+    </div>
+    
+    <div class="form-group hidden" id="studentGroup">
+        <label>Chọn Học Sinh:</label>
+        <input type="text" id="studentInput" placeholder="Gõ tên để tìm học sinh..." autocomplete="off">
+        <div id="studentDropdown" class="dropdown-list hidden"></div>
+    </div>
+    
+    <div id="qrContainer" class="hidden">
+        <div id="qrImage"></div>
+        <button class="btn-primary" onclick="completePayment()" style="margin-top: 20px;">Tôi đã hoàn thành chuyển khoản</button>
+    </div>
+    
+    <div id="successContainer" class="hidden">
+        <div class="success-msg">Bạn có thể lưu lại phiếu thanh toán chuyển khoản thành công (bill) để dùng sau cho các trường hợp cần thiết.</div>
+        <button class="btn-primary" onclick="location.reload()" style="margin-top: 15px;">Quay về trang chủ</button>
+    </div>
+</div>
+
+<div id="alertModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <p>Vui lòng kiểm tra lại thông tin thanh toán sau khi quét mã QR, nếu thông tin hiển thị đúng như dưới đây, bạn vui lòng thực hiện chuyển khoản.</p>
+        </div>
+        
+        <div class="modal-body">
+            <div class="bank-card">
+                <div class="bank-row">
+                    <span class="bank-label">Ngân hàng</span>
+                    <span class="bank-value">Công Thương Việt Nam (VIETINBANK)</span>
+                </div>
+                <div class="bank-row">
+                    <span class="bank-label">Số tài khoản</span>
+                    <span class="bank-value" id="mdlAccountNo"></span>
+                </div>
+                <div class="bank-row" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                    <span class="bank-label">Chủ tài khoản</span>
+                    <span class="bank-value" id="mdlAccountName"></span>
+                </div>
+            </div>
+            
+            <div class="amount-card">
+                <span class="amount-value" id="mdlAmount"></span> <span class="amount-currency">VND</span>
+            </div>
+            
+            <div class="content-card">
+                <span class="content-label">Nội dung chuyển tiền</span>
+                <span class="content-value" id="mdlDescription"></span>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal()">Quay lại</button>
+            <button class="btn-confirm" id="btnAgree" onclick="generateQR()" disabled>Đồng ý (5s)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dữ liệu học sinh
+    const data = {"10A1":[{"id":"0A65L10A154","name":"Huỳnh Quốc An"},{"id":"0A65L10A155","name":"Nguyễn Trang Anh"},{"id":"0A65L10A156","name":"Lê Tín Bảo"},{"id":"0A65L10A157","name":"Trương Gia Bảo"},{"id":"0A65L10A158","name":"Triệu Ngọc Hân"},{"id":"0A65L10A159","name":"Võ Thị Gia Hân"},{"id":"0A65L10A160","name":"Trương Gia Huy"},{"id":"0A65L10A161","name":"Trần Nguyên Khải"},{"id":"0A65L10A162","name":"Võ Quốc Kiệt"},{"id":"0A65L10A163","name":"Nguyễn Xuân Kỳ"},{"id":"0A65L10A164","name":"Võ Ngọc Phương Nguyên"},{"id":"0A65L10A165","name":"Nguyễn Tấn Lộc"},{"id":"0A65L10A166","name":"Trần Phúc Thiện Nhân"},{"id":"0A65L10A167","name":"Trần Ngọc Nhi"},{"id":"0A65L10A168","name":"Võ Trần Minh Quân"},{"id":"0A65L10A169","name":"Nguyễn Phú Quốc"},{"id":"0A65L10A170","name":"Bùi Minh Thiện"},{"id":"0A65L10A171","name":"Lê Minh Thư"},{"id":"0A65L10A172","name":"Dương Lê Quốc Toàn"},{"id":"0A65L10A173","name":"Trần Bá Toàn"},{"id":"0A65L10A174","name":"Trần Tiền Tỷ"},{"id":"0A65L10A175","name":"Nguyễn Lê Khánh Vân"},{"id":"0A65L10A176","name":"Trần Phước Minh Vy"}],"10A2":[{"id":"0A65L10A277","name":"Dương Thúy An"},{"id":"0A65L10A278","name":"Nguyễn Lê Quỳnh Anh"},{"id":"0A65L10A279","name":"Nguyễn Ngọc Phương Anh"},{"id":"0A65L10A280","name":"Nguyễn Hồng Phương Duyên"},{"id":"0A65L10A281","name":"Nguyễn Phương Đài"},{"id":"0A65L10A282","name":"Nguyễn Trương Ngọc Hân"},{"id":"0A65L10A283","name":"Nguyễn Minh Hùng"},{"id":"0A65L10A284","name":"Huỳnh Phước Huy"},{"id":"0A65L10A285","name":"Nguyễn Lê Thảo Huyên"},{"id":"0A65L10A286","name":"Nguyễn Ngọc Phương Lam"},{"id":"0A65L10A287","name":"Huỳnh Lê Ngọc Trúc Lâm"},{"id":"0A65L10A288","name":"Nguyễn Ngọc Tuyết Mai"},{"id":"0A65L10A289","name":"Phạm Hoàng Minh"},{"id":"0A65L10A290","name":"Âu Thị Diễm My"},{"id":"0A65L10A291","name":"Trần Thị Trúc Ngân"},{"id":"0A65L10A292","name":"Võ Huỳnh Kim Ngân"},{"id":"0A65L10A293","name":"Nguyễn Hữu Trí"},{"id":"0A65L10A294","name":"Lê Tường Vy"},{"id":"0A65L10A295","name":"Lương Thanh Vy"},{"id":"0A65L10A296","name":"Nguyễn Ngọc Như Ý"},{"id":"0A65L10A297","name":"Võ Hoàng Yên"}],"10A3":[{"id":"0A65L10A398","name":"Nguyễn Phước An"},{"id":"0A65L10A399","name":"Trần Ngọc Thúy An"},{"id":"0A65L10A300","name":"Phạm Duyên Anh"},{"id":"0A65L10A301","name":"Nguyễn Hoàng Ân"},{"id":"0A65L10A302","name":"Châu Quốc Chương"},{"id":"0A65L10A303","name":"Huỳnh Khang Duy"},{"id":"0A65L10A304","name":"Lê Thúy Đào"},{"id":"0A65L10A305","name":"Phạm Minh Đăng"},{"id":"0A65L10A306","name":"Lê Gia Ngọc Giào"},{"id":"0A65L10A307","name":"Lê Nhất Huy"},{"id":"0A65L10A308","name":"Nguyễn Võ Minh Kha"},{"id":"0A65L10A309","name":"Lê Nguyễn Gia Kiệt"},{"id":"0A65L10A310","name":"Lê Nguyễn Tiên Kim"},{"id":"0A65L10A311","name":"Nguyễn Hoàng Kim Ngân"},{"id":"0A65L10A312","name":"Trần Nguyễn Kim Ngân"},{"id":"0A65L10A313","name":"Lê Minh Nghĩa"},{"id":"0A65L10A314","name":"Dương Hoài Ngọc"},{"id":"0A65L10A315","name":"Phạm Nguyễn Bảo Ngọc"},{"id":"0A65L10A316","name":"Nguyễn Thành Nguyên"},{"id":"0A65L10A317","name":"Trương Nguyễn Kim Nguyên"},{"id":"0A65L10A318","name":"Nguyễn Thanh Tuyết Như"},{"id":"0A65L10A319","name":"Võ Hoàng Oanh"},{"id":"0A65L10A320","name":"Tăng Thị Hoàng Quyên"},{"id":"0A65L10A321","name":"Trần Ngọc Phương Thảo"},{"id":"0A65L10A322","name":"Trần Thanh Trúc"},{"id":"0A65L10A323","name":"Nguyễn Thị Tường Vy"}],"10A4":[{"id":"0A65L10A424","name":"Võ Hoàng Đức Anh"},{"id":"0A65L10A425","name":"Lê Quang Bình"},{"id":"0A65L10A426","name":"Lê Thị Ngọc Hậu"},{"id":"0A65L10A427","name":"Nguyễn Phúc Gia Huy"},{"id":"0A65L10A428","name":"Đỗ Trọng Khang"},{"id":"0A65L10A429","name":"Trần Quốc Khang"},{"id":"0A65L10A430","name":"Lê Nguyễn Bảo Khánh"},{"id":"0A65L10A431","name":"Huỳnh Phú Lộc"},{"id":"0A65L10A432","name":"Đặng Xuân Mai"},{"id":"0A65L10A433","name":"Nguyễn Huỳnh Mai"},{"id":"0A65L10A434","name":"Bùi Thị Thảo Nguyên"},{"id":"0A65L10A435","name":"Trần Thảo Nguyên"},{"id":"0A65L10A436","name":"Nguyễn Thành Nhân"},{"id":"0A65L10A437","name":"Lê Trà Hoa Nữ"},{"id":"0A65L10A438","name":"Phạm A Phúc"},{"id":"0A65L10A439","name":"Phạm Duy Phúc"},{"id":"0A65L10A440","name":"Đặng Thành Tân"},{"id":"0A65L10A441","name":"Huỳnh Cường Thịnh"},{"id":"0A65L10A442","name":"Nguyễn Phan Thanh Trúc"},{"id":"0A65L10A443","name":"Võ Ngọc Phương Uyên"}],"10A5":[{"id":"0A65L10A544","name":"Lê Quốc Cường"},{"id":"0A65L10A545","name":"Dương Minh Đoàn"},{"id":"0A65L10A546","name":"Nguyễn Duy Khang"},{"id":"0A65L10A547","name":"Lê Ngọc Bảo Ngân"},{"id":"0A65L10A548","name":"Lê Ngọc Uyển Nhi"},{"id":"0A65L10A549","name":"Nguyễn Yến Nhi"},{"id":"0A65L10A550","name":"Nguyễn Châu Phong"},{"id":"0A65L10A551","name":"Lê Phú Quý"},{"id":"0A65L10A552","name":"Nguyễn Ngọc Toàn"},{"id":"0A65L10A553","name":"Dương Ngọc Bảo Trân"},{"id":"0A65L10A554","name":"Nguyễn Văn Trọng"},{"id":"0A65L10A555","name":"Lê Ngọc Tỷ"}],"10A6":[{"id":"0A65L10A656","name":"Nguyễn Hoàng Thiên Bảo"},{"id":"0A65L10A657","name":"Nguyễn Thị Ngọc Chân"},{"id":"0A65L10A658","name":"Nguyễn Hoàng Đức"},{"id":"0A65L10A659","name":"Đinh Ngọc Giàu"},{"id":"0A65L10A660","name":"Huỳnh Kiện Hào"},{"id":"0A65L10A661","name":"Nguyễn Gia Hân"},{"id":"0A65L10A662","name":"Phạm Nguyễn Bảo Hân"},{"id":"0A65L10A663","name":"Trần Gia Huy"},{"id":"0A65L10A664","name":"Ngô An Khang"},{"id":"0A65L10A665","name":"Nguyễn Ngọc Thảo My"},{"id":"0A65L10A666","name":"Phạm Nguyễn Thảo My"},{"id":"0A65L10A667","name":"Võ Lê Thanh Ngọc"},{"id":"0A65L10A668","name":"Dương Quốc Thiện"},{"id":"0A65L10A669","name":"Trần Hoàng Yến Vy"},{"id":"0A65L10A670","name":"Nguyễn Ngọc Như Ý"}],"11A1":[{"id":"0A65L11A171","name":"Trần Tuyết Anh"},{"id":"0A65L11A172","name":"Nguyễn Thái Duy"},{"id":"0A65L11A173","name":"Phạm Thành Đạt"},{"id":"0A65L11A174","name":"Phạm Minh Hào"},{"id":"0A65L11A175","name":"Lê Ngọc Hân"},{"id":"0A65L11A176","name":"Phạm Gia Hân"},{"id":"0A65L11A177","name":"Trần Thái Hòa"},{"id":"0A65L11A178","name":"Nguyễn Hoàng Tuyết Ngân"},{"id":"0A65L11A179","name":"Nguyễn Huỳnh Như Ngọc"},{"id":"0A65L11A180","name":"Đỗ Nguyễn Tố Nhi"},{"id":"0A65L11A181","name":"Nguyễn Thị Tâm Như"},{"id":"0A65L11A182","name":"Trần Đoàn Quế Phương"},{"id":"0A65L11A183","name":"Võ Phạm Kim Quyên"},{"id":"0A65L11A184","name":"Nguyễn Huỳnh Quốc Thái"},{"id":"0A65L11A185","name":"Huỳnh Ngọc Thảo"},{"id":"0A65L11A186","name":"Nguyễn Ngọc Anh Thơ"},{"id":"0A65L11A187","name":"Hồ Phúc Toàn"},{"id":"0A65L11A188","name":"Trần Thị Ngọc Trang"},{"id":"0A65L11A189","name":"Huỳnh Tấn Trung"},{"id":"0A65L11A190","name":"Huỳnh Thị Ánh Tuyết"},{"id":"0A65L11A191","name":"Trần Anh Thư"}],"11A2":[{"id":"0A65L11A292","name":"Đinh Gia Bảo"},{"id":"0A65L11A293","name":"Đặng Kim Cương"},{"id":"0A65L11A294","name":"Phạm Văn Quốc Cường"},{"id":"0A65L11A295","name":"Huỳnh Chí Hào"},{"id":"0A65L11A296","name":"Lâm Chí Khanh"},{"id":"0A65L11A297","name":"Nguyễn Ngân Khánh"},{"id":"0A65L11A298","name":"Trần Hoàng Anh Khôi"},{"id":"0A65L11A299","name":"Trần Võ Minh Khôi"},{"id":"0A65L11A200","name":"Lê Thị Ngọc Lễ"},{"id":"0A65L11A201","name":"Nguyễn Kim Ngân"},{"id":"0A65L11A202","name":"Nguyễn Tuyết Ngân"},{"id":"0A65L11A203","name":"Nguyễn Khôi Nguyên"},{"id":"0A65L11A204","name":"Lê Minh Nhựt"},{"id":"0A65L11A205","name":"Nguyễn Huỳnh Tấn Phát"},{"id":"0A65L11A206","name":"Nguyễn Huỳnh Thanh Phong"},{"id":"0A65L11A207","name":"Lâm Hoàng Phúc"},{"id":"0A65L11A208","name":"Nguyễn Thị Hồng Phượng"},{"id":"0A65L11A209","name":"Nguyễn Ngọc Như Quỳnh"},{"id":"0A65L11A210","name":"Nguyễn Nhựt Tấn"},{"id":"0A65L11A211","name":"Nguyễn Hồng Thanh"},{"id":"0A65L11A212","name":"Thái Thị Thanh Thảo"},{"id":"0A65L11A213","name":"Huỳnh Quốc Thịnh"},{"id":"0A65L11A214","name":"Nguyễn Bảo Thy"}],"11A3":[{"id":"0A65L11A315","name":"Đỗ Phan Hoài Anh"},{"id":"0A65L11A316","name":"Nguyễn Huỳnh Tuấn Anh"},{"id":"0A65L11A317","name":"Nguyễn Tuấn Anh"},{"id":"0A65L11A318","name":"Lê Đình Nhật Bằng"},{"id":"0A65L11A319","name":"Lê Nguyễn Ngọc Bích"},{"id":"0A65L11A320","name":"Nguyễn Đoàn Bảo Chi"},{"id":"0A65L11A321","name":"Nguyễn Tường Duy"},{"id":"0A65L11A322","name":"Ngô Gia Đạt"},{"id":"0A65L11A323","name":"Phạm Quỳnh Giang"},{"id":"0A65L11A324","name":"Lê Hoàng Nhựt Huy"},{"id":"0A65L11A325","name":"Lê Huỳnh Hoàng Huy"},{"id":"0A65L11A326","name":"Trần Thanh Huy"},{"id":"0A65L11A327","name":"Lê Tuấn Kiệt"},{"id":"0A65L11A328","name":"Nguyễn Tuấn Minh"},{"id":"0A65L11A329","name":"Đoàn Nguyễn Phương Nhi"},{"id":"0A65L11A330","name":"Lê Trần Duy Phước"},{"id":"0A65L11A331","name":"Phan Nguyễn Hoàng Thiện"},{"id":"0A65L11A332","name":"Phạm Đào Kim Thư"},{"id":"0A65L11A333","name":"Nguyễn Ngọc Bích Trâm"},{"id":"0A65L11A334","name":"Nguyễn Minh Tuyết"},{"id":"0A65L11A335","name":"Nguyễn Thị Tường Vy"},{"id":"0A65L11A336","name":"Nguyễn Thị Như Ý"}],"11A4":[{"id":"0A65L11A437","name":"Trương Quỳnh Anh"},{"id":"0A65L11A438","name":"Nguyễn Ngọc Minh Châu"},{"id":"0A65L11A439","name":"Phạm Mẫn Chi"},{"id":"0A65L11A440","name":"Nguyễn Gia Hân"},{"id":"0A65L11A441","name":"Nguyễn Đăng Khôi"},{"id":"0A65L11A442","name":"Nguyễn Thị Cẩm Ly"},{"id":"0A65L11A443","name":"Nguyễn Hoàng Thanh Mai"},{"id":"0A65L11A444","name":"Lê Quỳnh Thảo Ngân"},{"id":"0A65L11A445","name":"Võ Thị Diệu Nhiên"},{"id":"0A65L11A446","name":"Nguyễn Hoàng Quí"},{"id":"0A65L11A447","name":"Nguyễn Lê Thúy Quỳnh"},{"id":"0A65L11A448","name":"Lê Duy Tân"},{"id":"0A65L11A449","name":"Tôn Luật Tân"},{"id":"0A65L11A450","name":"Huỳnh Thu Thảo"},{"id":"0A65L11A451","name":"Nguyễn Phương Thảo"},{"id":"0A65L11A452","name":"Nguyễn Quốc Thắng"},{"id":"0A65L11A453","name":"Nguyễn Ngọc Kim Thoa"},{"id":"0A65L11A454","name":"Nguyễn Thiên Minh Thư"},{"id":"0A65L11A455","name":"Nguyễn Kiều Trinh"},{"id":"0A65L11A456","name":"Võ Ngọc Thu Trinh"},{"id":"0A65L11A457","name":"Nguyễn Thảo Vy"}],"12A1":[{"id":"0A65L12A158","name":"Huỳnh Thị Thảo An"},{"id":"0A65L12A159","name":"Huỳnh Thị Thùy An"},{"id":"0A65L12A160","name":"Trương Nguyễn Thế Danh"},{"id":"0A65L12A161","name":"Trần Ngọc Hà"},{"id":"0A65L12A162","name":"Võ Ngọc Bảo Hân"},{"id":"0A65L12A163","name":"Huỳnh Khánh Huy"},{"id":"0A65L12A164","name":"Trần Hà Gia Khang"},{"id":"0A65L12A165","name":"Nguyễn Trí Khanh"},{"id":"0A65L12A166","name":"Nguyễn Khôi Nguyên"},{"id":"0A65L12A167","name":"Trần Thị Ánh Nguyên"},{"id":"0A65L12A168","name":"Phan Lê Nhi"},{"id":"0A65L12A169","name":"Lê Minh Nhựt"},{"id":"0A65L12A170","name":"Nguyễn Minh Phát"},{"id":"0A65L12A171","name":"Nguyễn Thị Như Quỳnh"},{"id":"0A65L12A172","name":"Nguyễn Tấn Tài"},{"id":"0A65L12A173","name":"Trần Trí Tâm"},{"id":"0A65L12A174","name":"Nguyễn Huỳnh Thu Thảo"},{"id":"0A65L12A175","name":"Nguyễn Minh Thư"},{"id":"0A65L12A176","name":"Phạm Đặng Ngọc Thư"},{"id":"0A65L12A177","name":"Lê Ngọc Thu Trâm"},{"id":"0A65L12A178","name":"Châu Thanh Trúc"},{"id":"0A65L12A179","name":"Nguyễn Ngọc Trúc Vân"},{"id":"0A65L12A180","name":"Phạm Thân Thế Vinh"},{"id":"0A65L12A181","name":"Trần Bảo Vy"}],"12A3":[{"id":"0A65L12A382","name":"Nguyễn Vĩnh Thái An"},{"id":"0A65L12A383","name":"Ngô Gia Huy"},{"id":"0A65L12A384","name":"Nguyễn Gia Huy"},{"id":"0A65L12A385","name":"Phạm Gia Huy"},{"id":"0A65L12A386","name":"Trần Gia Huy"},{"id":"0A65L12A387","name":"Phạm Quốc Khang"},{"id":"0A65L12A388","name":"Lê Hoàng Gia Khánh"},{"id":"0A65L12A389","name":"Bùi Kim Ngân"},{"id":"0A65L12A390","name":"Đặng Kim Ngân"},{"id":"0A65L12A391","name":"Trần Thị Hồng Phấn"},{"id":"0A65L12A392","name":"Phạm Gia Phú"},{"id":"0A65L12A393","name":"Nguyễn Hoàng Phúc"},{"id":"0A65L12A394","name":"Nguyễn Hữu Thọ"},{"id":"0A65L12A395","name":"Lê Ngọc Huyền Trân"},{"id":"0A65L12A396","name":"Nguyễn Minh Trí"},{"id":"0A65L12A397","name":"Huỳnh Lê Thủy Trúc"},{"id":"0A65L12A398","name":"Nguyễn Quang Tường"},{"id":"0A65L12A399","name":"Phạm Nguyễn Gia Quý"},{"id":"0A65L12A300","name":"Nguyễn Huy Phương"}],"12A4":[{"id":"0A65L12A401","name":"Đặng Thy Anh"},{"id":"0A65L12A402","name":"Trần Thị Thúy Anh"},{"id":"0A65L12A403","name":"Lâm Hoàng Gia"},{"id":"0A65L12A404","name":"Huỳnh Ngọc Gia Hân"},{"id":"0A65L12A405","name":"Lê Nguyễn Gia Hân"},{"id":"0A65L12A406","name":"Lê Khắc Huy"},{"id":"0A65L12A407","name":"Ngô Quang Huy"},{"id":"0A65L12A408","name":"Nguyễn Ngọc Tường Lam"},{"id":"0A65L12A409","name":"Phùng Phương Linh"},{"id":"0A65L12A410","name":"Nguyễn Đỗ Như Loan"},{"id":"0A65L12A411","name":"Lê Trí Nguyên"},{"id":"0A65L12A412","name":"Lê Thị Khánh Như"},{"id":"0A65L12A413","name":"Văn Phạm Hoàng Thiện"},{"id":"0A65L12A414","name":"Lê Anh Thư"},{"id":"0A65L12A415","name":"Nguyễn Thị Hồng Thư"},{"id":"0A65L12A416","name":"Nguyễn Trần Mỹ Thư"},{"id":"0A65L12A417","name":"Võ Minh Thư"},{"id":"0A65L12A418","name":"Nguyễn Thị Lan Trinh"},{"id":"0A65L12A419","name":"Trần Thị Đoan Trinh"},{"id":"0A65L12A420","name":"Huỳnh Nguyễn Ngọc Tuyền"},{"id":"0A65L12A421","name":"Đặng Quốc Vinh"},{"id":"0A65L12A422","name":"Mai Quốc Vinh"},{"id":"0A65L12A423","name":"Lương Thúy Vy"},{"id":"0A65L12A424","name":"Phạm Thị Kim Xuyến"},{"id":"0A65L12A425","name":"Nguyễn Ngọc Kim Yến"}],"12A5":[{"id":"0A65L12A526","name":"Nguyễn Thị Xuân Diệu"},{"id":"0A65L12A527","name":"Nguyễn Thị Hạnh Duyên"},{"id":"0A65L12A528","name":"Nguyễn Thùy Duyên"},{"id":"0A65L12A529","name":"Lê Quốc Đại"},{"id":"0A65L12A530","name":"Đoàn Thành Hiếu"},{"id":"0A65L12A531","name":"Lê Huy Hoàng"},{"id":"0A65L12A532","name":"Đoàn Thanh Huy"},{"id":"0A65L12A533","name":"Bạch Gia Hưng"},{"id":"0A65L12A534","name":"Châu Khánh Hương"},{"id":"0A65L12A535","name":"Nguyễn Quốc Khánh"},{"id":"0A65L12A536","name":"Nguyễn Đăng Khoa"},{"id":"0A65L12A537","name":"Nguyễn Lê Nhật Lam"},{"id":"0A65L12A538","name":"Ngô Hiếu Lộc"},{"id":"0A65L12A539","name":"Võ Huỳnh Hồng Nhung"},{"id":"0A65L12A540","name":"Phạm Thành Phát"},{"id":"0A65L12A541","name":"Trương Gia Phú"},{"id":"0A65L12A542","name":"Nguyễn Lê Đức Tân"}],"12A6":[{"id":"0A65L12A643","name":"Nguyễn Thị Ngọc Băng"},{"id":"0A65L12A644","name":"Phạm Hoàng Dũng"},{"id":"0A65L12A645","name":"Nguyễn Hoàng Duy"},{"id":"0A65L12A646","name":"Nguyễn Nhựt Duy"},{"id":"0A65L12A647","name":"Nguyễn Thanh Duy"},{"id":"0A65L12A648","name":"Lê Ngọc Hân"},{"id":"0A65L12A649","name":"Lê Thái Hùng"},{"id":"0A65L12A650","name":"Huỳnh Quốc Huy"},{"id":"0A65L12A651","name":"Nguyễn Thị Thu Huyền"},{"id":"0A65L12A652","name":"Phạm Ngọc Hương"},{"id":"0A65L12A653","name":"Nguyễn Võ Đăng Khoa"},{"id":"0A65L12A654","name":"Mai Đăng Khôi"},{"id":"0A65L12A655","name":"Nguyễn Thị Huỳnh Mai"},{"id":"0A65L12A656","name":"Lê Nguyễn Khánh Nguyên"},{"id":"0A65L12A657","name":"Đỗ Lê Thanh Nhả"},{"id":"0A65L12A658","name":"Nguyễn Hoàng Nhân"},{"id":"0A65L12A659","name":"Nguyễn Thanh Nhân"},{"id":"0A65L12A660","name":"Nguyễn Gia Phú"},{"id":"0A65L12A661","name":"Nguyễn Minh Phúc"},{"id":"0A65L12A662","name":"Nguyễn Trí Thức"},{"id":"0A65L12A663","name":"Lê Ngọc Bảo Thy"},{"id":"0A65L12A664","name":"Lê Nguyễn Ngọc Tiên"},{"id":"0A65L12A665","name":"Võ Ngọc Mỹ Tín"},{"id":"0A65L12A666","name":"Phạm Lê Thanh Trúc"},{"id":"0A65L12A667","name":"Lê Thị Ngọc Yến"}],"12A7":[{"id":"0A65L12A768","name":"Nguyễn Tuấn Huy"},{"id":"0A65L12A769","name":"Nguyễn Gia Hưng"},{"id":"0A65L12A770","name":"Nguyễn Tuấn Kiệt"},{"id":"0A65L12A771","name":"Nguyễn Lương Hoàng Long"},{"id":"0A65L12A772","name":"Lê Đức Huỳnh Phúc"},{"id":"0A65L12A773","name":"Nguyễn Minh Thiện"}],"12A8":[{"id":"0A65L12A874","name":"Võ Thị Nguyệt Ánh"},{"id":"0A65L12A875","name":"Phạm Gia Bảo"},{"id":"0A65L12A876","name":"Nguyễn Thị Ngân Hà"},{"id":"0A65L12A877","name":"Bùi Thị Giàu Hiếu"},{"id":"0A65L12A878","name":"Trần Thanh Hoàng"},{"id":"0A65L12A879","name":"Nguyễn Lê Tấn Huy"},{"id":"0A65L12A880","name":"Lê Tuấn Khanh"},{"id":"0A65L12A881","name":"Phạm Quốc Kỳ"},{"id":"0A65L12A882","name":"Võ Thị Trúc Mai"},{"id":"0A65L12A883","name":"Âu Hoàng Nam"},{"id":"0A65L12A884","name":"Đặng Thị Ngọc Nga"},{"id":"0A65L12A885","name":"Nguyễn Lâm Khánh Tân"},{"id":"0A65L12A886","name":"Nguyễn Hữu Quốc Thịnh"},{"id":"0A65L12A887","name":"Thái Thị Tuyết Trinh"},{"id":"0A65L12A888","name":"Phan Đăng Trình"},{"id":"0A65L12A889","name":"Nguyễn Nhựt Trường"}]};
+
+    // Hàm làm sạch tiếng Việt triệt để
+    function removeVietnameseTones(str) {
+        if (!str) return "";
+        return str.normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')
+                  .replace(/đ/g, 'd')
+                  .replace(/Đ/g, 'D')
+                  .replace(/[^a-zA-Z0-9 ]/g, '')
+                  .trim();
+    }
+
+    function formatCurrency(amount) {
+        return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    const classInput = document.getElementById("classInput");
+    const classDropdown = document.getElementById("classDropdown");
+    const studentGroup = document.getElementById("studentGroup");
+    const studentInput = document.getElementById("studentInput");
+    const studentDropdown = document.getElementById("studentDropdown");
+
+    let currentClass = "";
+    let selectedStudent = null;
+    let amount = 0;
+    let duration = "";
+    let timerInterval = null;
+
+    function renderClassDropdown(filter = "") {
+        classDropdown.innerHTML = "";
+        let classes = Object.keys(data);
+        if (filter) {
+            classes = classes.filter(c => c.toLowerCase().includes(filter.toLowerCase()));
+        }
+        
+        if(classes.length === 0) {
+            classDropdown.innerHTML = `<div class="dropdown-empty">Không tìm thấy lớp</div>`;
+            return;
+        }
+
+        classes.forEach(c => {
+            let div = document.createElement("div");
+            div.className = "dropdown-item";
+            div.innerText = c;
+            div.onclick = () => {
+                classInput.value = c;
+                currentClass = c;
+                classDropdown.classList.add("hidden");
+                studentGroup.classList.remove("hidden");
+                studentInput.value = "";
+                studentDropdown.classList.add("hidden");
+                document.getElementById("qrContainer").classList.add("hidden");
+            };
+            classDropdown.appendChild(div);
+        });
+    }
+
+    classInput.addEventListener("focus", () => {
+        renderClassDropdown(classInput.value);
+        classDropdown.classList.remove("hidden");
+    });
+
+    classInput.addEventListener("input", (e) => {
+        renderClassDropdown(e.target.value);
+        classDropdown.classList.remove("hidden");
+        studentGroup.classList.add("hidden"); 
+    });
+
+    function renderStudentDropdown(filter = "") {
+        if(!currentClass || !data[currentClass]) return;
+        
+        studentDropdown.innerHTML = "";
+        let students = data[currentClass];
+        
+        if (filter) {
+            let filterNoTones = removeVietnameseTones(filter).toLowerCase();
+            students = students.filter(s => {
+                let nameNoTones = removeVietnameseTones(s.name).toLowerCase();
+                return nameNoTones.includes(filterNoTones);
+            });
+        }
+        
+        if(students.length === 0) {
+            studentDropdown.innerHTML = `<div class="dropdown-empty">Không tìm thấy học sinh</div>`;
+            return;
+        }
+
+        students.forEach(s => {
+            let div = document.createElement("div");
+            div.className = "dropdown-item";
+            div.innerText = s.name;
+            div.onclick = () => {
+                studentInput.value = s.name;
+                selectedStudent = s;
+                studentDropdown.classList.add("hidden");
+                showModal();
+            };
+            studentDropdown.appendChild(div);
+        });
+    }
+
+    studentInput.addEventListener("focus", () => {
+        renderStudentDropdown(studentInput.value);
+        studentDropdown.classList.remove("hidden");
+    });
+
+    studentInput.addEventListener("input", (e) => {
+        renderStudentDropdown(e.target.value);
+        studentDropdown.classList.remove("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+        if(!classInput.contains(e.target) && !classDropdown.contains(e.target)) {
+            classDropdown.classList.add("hidden");
+        }
+        if(!studentInput.contains(e.target) && !studentDropdown.contains(e.target)) {
+            studentDropdown.classList.add("hidden");
+        }
+    });
+
+    function showModal() {
+        let grade = parseInt(currentClass.substring(0, 2));
+        amount = (grade === 12) ? 512325 : 683100;
+        duration = (grade === 12) ? 9 : 12;
+        
+        // Tạo Tên Đầy đủ không dấu viết hoa (Cho phần Tên Tài Khoản)
+        let fullNameNoTones = removeVietnameseTones(selectedStudent.name).toUpperCase();
+        let accountNameDisplay = `Truong THPT Hieu Phung ${amount} ${fullNameNoTones}_114002922392`;
+        
+        // Tách lấy 2 chữ cuối trong tên (Cho Nội dung chuyển tiền)
+        let nameParts = selectedStudent.name.trim().split(/\s+/);
+        let shortNameRaw = nameParts.length >= 2 ? nameParts.slice(-2).join(" ") : selectedStudent.name;
+        let shortNameNoTones = removeVietnameseTones(shortNameRaw).toUpperCase();
+        
+        // Cấu trúc nội dung mới: NHAT BANG 11A3 dong BHYT 12 thang
+        let description = `${shortNameNoTones} ${currentClass} dong BHYT ${duration} thang`;
+        
+        document.getElementById("mdlAccountNo").innerText = selectedStudent.id;
+        document.getElementById("mdlAccountName").innerText = accountNameDisplay;
+        document.getElementById("mdlAmount").innerText = formatCurrency(amount);
+        document.getElementById("mdlDescription").innerText = description;
+        
+        document.getElementById("alertModal").classList.remove("hidden");
+        
+        let btn = document.getElementById("btnAgree");
+        btn.disabled = true;
+        let timeLeft = 5;
+        btn.innerText = `Đồng ý (${timeLeft}s)`;
+        
+        if(timerInterval) clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            if(timeLeft > 0){
+                btn.innerText = `Đồng ý (${timeLeft}s)`;
+            } else {
+                clearInterval(timerInterval);
+                btn.innerText = "Đồng ý";
+                btn.disabled = false;
+            }
+        }, 1000);
+    }
+
+    function closeModal() {
+        document.getElementById("alertModal").classList.add("hidden");
+        if(timerInterval) clearInterval(timerInterval);
+        studentInput.value = "";
+        selectedStudent = null;
+    }
+
+    function generateQR() {
+        let fullNameNoTones = removeVietnameseTones(selectedStudent.name).toUpperCase();
+        let accountNameDisplay = `Truong THPT Hieu Phung ${amount} ${fullNameNoTones}_114002922392`;
+
+        let nameParts = selectedStudent.name.trim().split(/\s+/);
+        let shortNameRaw = nameParts.length >= 2 ? nameParts.slice(-2).join(" ") : selectedStudent.name;
+        let shortNameNoTones = removeVietnameseTones(shortNameRaw).toUpperCase();
+        
+        let description = `${shortNameNoTones} ${currentClass} dong BHYT ${duration} thang`;
+        
+        let url = `https://img.vietqr.io/image/vietinbank-${selectedStudent.id}-compact.png?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(accountNameDisplay)}`;
+        
+        document.getElementById("alertModal").classList.add("hidden");
+        if(timerInterval) clearInterval(timerInterval);
+        
+        document.getElementById("qrImage").innerHTML = `<img src="${url}" alt="QR Code BHYT">`;
+        document.getElementById("qrContainer").classList.remove("hidden");
+        
+        document.getElementById("classGroup").classList.add("hidden");
+        document.getElementById("studentGroup").classList.add("hidden");
+    }
+    
+    function completePayment() {
+        document.getElementById("qrContainer").classList.add("hidden");
+        document.getElementById("successContainer").classList.remove("hidden");
+    }
+</script>
+
+</body>
+</html>
