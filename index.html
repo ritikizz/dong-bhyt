@@ -27,13 +27,18 @@
     .dropdown-item:hover { background: #f8fafc; color: #2d6cdf; font-weight: 500; }
     .dropdown-empty { padding: 10px 12px; color: #9ca3af; text-align: center; font-style: italic; font-size: 14px; }
 
-    button.btn-primary { background: #2d6cdf; color: white; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: background 0.2s; }
+    button.btn-primary { background: #2d6cdf; color: white; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
     button.btn-primary:hover:not(:disabled) { background: #1f4fb3; }
     button:disabled { background: #cbd5e1; cursor: not-allowed; }
     
     .hidden { display: none !important; }
-    #qrContainer img { margin-top: 15px; max-width: 100%; border-radius: 12px; border: 1px solid #e5e7eb; padding: 8px; background: white; }
+    #qrContainer img { margin-top: 10px; max-width: 100%; border-radius: 12px; border: 1px solid #e5e7eb; padding: 8px; background: white; }
     
+    .qr-details { background: #f8fafc; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px solid #e5e7eb; font-size: 14px; text-align: left; line-height: 1.6; }
+    .qr-details p { margin-bottom: 5px; }
+    .qr-details p:last-child { margin-bottom: 0; }
+    .qr-details strong { color: #1f2937; }
+
     /* --------- MODAL BANKING APP STYLES (COMPACT) --------- */
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
     .modal-content { background: #f2f4f8; padding: 0; border-radius: 14px; max-width: 360px; width: 100%; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
@@ -64,6 +69,9 @@
     .btn-confirm:hover:not(:disabled) { background: #1f4fb3; }
 
     .success-msg { color: #059669; font-weight: 600; margin-top: 20px; font-size: 15px; line-height: 1.5; padding: 15px; background: #ecfdf5; border-radius: 10px; }
+    
+    .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+    .btn-group button { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -85,7 +93,23 @@
     
     <div id="qrContainer" class="hidden">
         <div id="qrImage"></div>
-        <button class="btn-primary" onclick="completePayment()" style="margin-top: 20px;">Tôi đã hoàn thành chuyển khoản</button>
+        
+        <div class="qr-details">
+            <p><strong>Ngân hàng:</strong> VietinBank</p>
+            <p><strong>Số tài khoản:</strong> <span id="resAccountNo"></span></p>
+            <p><strong>Chủ tài khoản:</strong> <span id="resAccountName"></span></p>
+            <p><strong>Số tiền:</strong> <strong style="color:#e11d48;" id="resAmount"></strong></p>
+            <p><strong>Nội dung:</strong> <span id="resDescription"></span></p>
+        </div>
+
+        <p style="font-size: 13px; color: #6b7280; margin-top: 15px; font-style: italic;">
+            Bạn có thể tải mã QR này về để chuyển khoản sau hoặc gửi cho gia đình thanh toán.
+        </p>
+        
+        <div class="btn-group">
+            <button class="btn-secondary" onclick="downloadQR()">Tải mã QR</button>
+            <button class="btn-primary" onclick="completePayment()">Đã chuyển khoản</button>
+        </div>
     </div>
     
     <div id="successContainer" class="hidden">
@@ -261,18 +285,16 @@
         amount = (grade === 12) ? 512325 : 683100;
         duration = (grade === 12) ? 9 : 12;
         
-        // Tạo Tên Đầy đủ không dấu viết hoa (Cho phần Tên Tài Khoản)
         let fullNameNoTones = removeVietnameseTones(selectedStudent.name).toUpperCase();
         let accountNameDisplay = `Truong THPT Hieu Phung ${amount} ${fullNameNoTones}_114002922392`;
         
-        // Tách lấy 2 chữ cuối trong tên (Cho Nội dung chuyển tiền)
         let nameParts = selectedStudent.name.trim().split(/\s+/);
         let shortNameRaw = nameParts.length >= 2 ? nameParts.slice(-2).join(" ") : selectedStudent.name;
         let shortNameNoTones = removeVietnameseTones(shortNameRaw).toUpperCase();
         
-        // Cấu trúc nội dung mới: NHAT BANG 11A3 dong BHYT 12 thang
         let description = `${shortNameNoTones} ${currentClass} dong BHYT ${duration} thang`;
         
+        // Đẩy dữ liệu vào Popup Modal
         document.getElementById("mdlAccountNo").innerText = selectedStudent.id;
         document.getElementById("mdlAccountName").innerText = accountNameDisplay;
         document.getElementById("mdlAmount").innerText = formatCurrency(amount);
@@ -321,6 +343,12 @@
         document.getElementById("alertModal").classList.add("hidden");
         if(timerInterval) clearInterval(timerInterval);
         
+        // Đẩy dữ liệu hiển thị xuống dưới QR
+        document.getElementById("resAccountNo").innerText = selectedStudent.id;
+        document.getElementById("resAccountName").innerText = accountNameDisplay;
+        document.getElementById("resAmount").innerText = formatCurrency(amount) + " VND";
+        document.getElementById("resDescription").innerText = description;
+        
         document.getElementById("qrImage").innerHTML = `<img src="${url}" alt="QR Code BHYT">`;
         document.getElementById("qrContainer").classList.remove("hidden");
         
@@ -328,6 +356,32 @@
         document.getElementById("studentGroup").classList.add("hidden");
     }
     
+    // Xử lý nút Tải mã QR
+    function downloadQR() {
+        let imgTag = document.querySelector("#qrImage img");
+        if (!imgTag) return;
+        
+        let imgUrl = imgTag.src;
+        fetch(imgUrl)
+            .then(response => response.blob())
+            .then(blob => {
+                let url = window.URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = url;
+                // Tạo tên file an toàn (bỏ dấu, đổi khoảng trắng thành dấu gạch dưới)
+                let safeName = removeVietnameseTones(selectedStudent.name).replace(/\s+/g, '_');
+                a.download = `QR_BHYT_${safeName}_${currentClass}.png`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(e => {
+                // Mở tab mới nếu bị lỗi tải
+                window.open(imgUrl, '_blank');
+            });
+    }
+
     function completePayment() {
         document.getElementById("qrContainer").classList.add("hidden");
         document.getElementById("successContainer").classList.remove("hidden");
