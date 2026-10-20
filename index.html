@@ -39,6 +39,20 @@
     .qr-details p:last-child { margin-bottom: 0; }
     .qr-details strong { color: #1f2937; }
 
+    /* Cân đối lại nhóm nút bấm */
+    .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+    .btn-group .btn-secondary,
+    .btn-group .btn-primary { 
+        flex: 1; 
+        width: 100%; 
+        margin-top: 0; 
+        padding: 12px 10px; 
+        font-size: 14px; 
+        font-weight: 600; 
+        border-radius: 10px;
+        box-sizing: border-box;
+    }
+
     /* --------- MODAL BANKING APP STYLES (COMPACT) --------- */
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
     .modal-content { background: #f2f4f8; padding: 0; border-radius: 14px; max-width: 360px; width: 100%; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
@@ -69,9 +83,6 @@
     .btn-confirm:hover:not(:disabled) { background: #1f4fb3; }
 
     .success-msg { color: #059669; font-weight: 600; margin-top: 20px; font-size: 15px; line-height: 1.5; padding: 15px; background: #ecfdf5; border-radius: 10px; }
-    
-    .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-    .btn-group button { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -294,7 +305,6 @@
         
         let description = `${shortNameNoTones} ${currentClass} dong BHYT ${duration} thang`;
         
-        // Đẩy dữ liệu vào Popup Modal
         document.getElementById("mdlAccountNo").innerText = selectedStudent.id;
         document.getElementById("mdlAccountName").innerText = accountNameDisplay;
         document.getElementById("mdlAmount").innerText = formatCurrency(amount);
@@ -343,43 +353,46 @@
         document.getElementById("alertModal").classList.add("hidden");
         if(timerInterval) clearInterval(timerInterval);
         
-        // Đẩy dữ liệu hiển thị xuống dưới QR
         document.getElementById("resAccountNo").innerText = selectedStudent.id;
         document.getElementById("resAccountName").innerText = accountNameDisplay;
         document.getElementById("resAmount").innerText = formatCurrency(amount) + " VND";
         document.getElementById("resDescription").innerText = description;
         
-        document.getElementById("qrImage").innerHTML = `<img src="${url}" alt="QR Code BHYT">`;
+        // Thêm thuộc tính crossOrigin="anonymous" để cho phép Canvas xử lý hình ảnh từ miền khác mà không bị lỗi
+        document.getElementById("qrImage").innerHTML = `<img id="qrImg" src="${url}" crossorigin="anonymous" alt="QR Code BHYT">`;
         document.getElementById("qrContainer").classList.remove("hidden");
         
         document.getElementById("classGroup").classList.add("hidden");
         document.getElementById("studentGroup").classList.add("hidden");
     }
     
-    // Xử lý nút Tải mã QR
+    // Tải trực tiếp bằng Canvas Base64, chống lỗi nhảy trang/mở link API
     function downloadQR() {
-        let imgTag = document.querySelector("#qrImage img");
-        if (!imgTag) return;
-        
-        let imgUrl = imgTag.src;
-        fetch(imgUrl)
-            .then(response => response.blob())
-            .then(blob => {
-                let url = window.URL.createObjectURL(blob);
-                let a = document.createElement('a');
-                a.href = url;
-                // Tạo tên file an toàn (bỏ dấu, đổi khoảng trắng thành dấu gạch dưới)
-                let safeName = removeVietnameseTones(selectedStudent.name).replace(/\s+/g, '_');
-                a.download = `QR_BHYT_${safeName}_${currentClass}.png`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(url);
-            })
-            .catch(e => {
-                // Mở tab mới nếu bị lỗi tải
-                window.open(imgUrl, '_blank');
-            });
+        let img = document.querySelector("#qrImage img");
+        if (!img) return;
+
+        try {
+            let canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth || img.width || 500;
+            canvas.height = img.naturalHeight || img.height || 500;
+            
+            let ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            let dataUrl = canvas.toDataURL("image/png");
+            let a = document.createElement('a');
+            a.href = dataUrl;
+            
+            let safeName = removeVietnameseTones(selectedStudent ? selectedStudent.name : "HocSinh").replace(/\s+/g, '_');
+            a.download = `QR_BHYT_${safeName}_${currentClass}.png`;
+            
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (e) {
+            console.error("Lỗi tải ảnh Canvas:", e);
+            alert("Không thể tự động tải ảnh về thiết bị. Bạn có thể nhấn giữ vào hình mã QR (trên điện thoại) hoặc chuột phải chọn 'Lưu hình ảnh thành...' (trên máy tính) để tải về nhé!");
+        }
     }
 
     function completePayment() {
