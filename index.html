@@ -27,7 +27,7 @@
     .dropdown-item:hover { background: #f8fafc; color: #2d6cdf; font-weight: 500; }
     .dropdown-empty { padding: 10px 12px; color: #9ca3af; text-align: center; font-style: italic; font-size: 14px; }
 
-    button.btn-primary { background: #2d6cdf; color: white; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
+    button.btn-primary { background: #2d6cdf; color: white; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 15px; transition: background 0.2s; }
     button.btn-primary:hover:not(:disabled) { background: #1f4fb3; }
     button:disabled { background: #cbd5e1; cursor: not-allowed; }
     
@@ -35,23 +35,9 @@
     #qrContainer img { margin-top: 10px; max-width: 100%; border-radius: 12px; border: 1px solid #e5e7eb; padding: 8px; background: white; }
     
     .qr-details { background: #f8fafc; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px solid #e5e7eb; font-size: 14px; text-align: left; line-height: 1.6; }
-    .qr-details p { margin-bottom: 5px; }
+    .qr-details p { margin-bottom: 6px; }
     .qr-details p:last-child { margin-bottom: 0; }
     .qr-details strong { color: #1f2937; }
-
-    /* Cân đối lại nhóm nút bấm */
-    .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-    .btn-group .btn-secondary,
-    .btn-group .btn-primary { 
-        flex: 1; 
-        width: 100%; 
-        margin-top: 0; 
-        padding: 12px 10px; 
-        font-size: 14px; 
-        font-weight: 600; 
-        border-radius: 10px;
-        box-sizing: border-box;
-    }
 
     /* --------- MODAL BANKING APP STYLES (COMPACT) --------- */
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
@@ -112,15 +98,8 @@
             <p><strong>Số tiền:</strong> <strong style="color:#e11d48;" id="resAmount"></strong></p>
             <p><strong>Nội dung:</strong> <span id="resDescription"></span></p>
         </div>
-
-        <p style="font-size: 13px; color: #6b7280; margin-top: 15px; font-style: italic;">
-            Bạn có thể tải mã QR này về để chuyển khoản sau hoặc gửi cho gia đình thanh toán.
-        </p>
         
-        <div class="btn-group">
-            <button class="btn-secondary" onclick="downloadQR()">Tải mã QR</button>
-            <button class="btn-primary" onclick="completePayment()">Đã chuyển khoản</button>
-        </div>
+        <button class="btn-primary" onclick="completePayment()">Tôi đã hoàn thành chuyển khoản</button>
     </div>
     
     <div id="successContainer" class="hidden">
@@ -358,41 +337,12 @@
         document.getElementById("resAmount").innerText = formatCurrency(amount) + " VND";
         document.getElementById("resDescription").innerText = description;
         
-        // Thêm thuộc tính crossOrigin="anonymous" để cho phép Canvas xử lý hình ảnh từ miền khác mà không bị lỗi
-        document.getElementById("qrImage").innerHTML = `<img id="qrImg" src="${url}" crossorigin="anonymous" alt="QR Code BHYT">`;
+        // Đã xóa thuộc tính crossorigin để hình ảnh không bị máy chủ chặn nữa
+        document.getElementById("qrImage").innerHTML = `<img src="${url}" alt="QR Code BHYT">`;
         document.getElementById("qrContainer").classList.remove("hidden");
         
         document.getElementById("classGroup").classList.add("hidden");
         document.getElementById("studentGroup").classList.add("hidden");
-    }
-    
-    // Tải trực tiếp bằng Canvas Base64, chống lỗi nhảy trang/mở link API
-    function downloadQR() {
-        let img = document.querySelector("#qrImage img");
-        if (!img) return;
-
-        try {
-            let canvas = document.createElement("canvas");
-            canvas.width = img.naturalWidth || img.width || 500;
-            canvas.height = img.naturalHeight || img.height || 500;
-            
-            let ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            let dataUrl = canvas.toDataURL("image/png");
-            let a = document.createElement('a');
-            a.href = dataUrl;
-            
-            let safeName = removeVietnameseTones(selectedStudent ? selectedStudent.name : "HocSinh").replace(/\s+/g, '_');
-            a.download = `QR_BHYT_${safeName}_${currentClass}.png`;
-            
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        } catch (e) {
-            console.error("Lỗi tải ảnh Canvas:", e);
-            alert("Không thể tự động tải ảnh về thiết bị. Bạn có thể nhấn giữ vào hình mã QR (trên điện thoại) hoặc chuột phải chọn 'Lưu hình ảnh thành...' (trên máy tính) để tải về nhé!");
-        }
     }
 
     function completePayment() {
