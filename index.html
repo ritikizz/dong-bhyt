@@ -53,6 +53,17 @@
         box-sizing: border-box;
     }
 
+    /* Tinh chỉnh Highlight Tên Học Sinh gọn gàng, liền mạch */
+    .name-highlight {
+        background-color: #fef08a;
+        color: #854d0e;
+        padding: 1px 3px;
+        border-radius: 3px;
+        font-weight: 600;
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+    }
+
     /* --------- MODAL BANKING APP STYLES (COMPACT) --------- */
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
     .modal-content { background: #f2f4f8; padding: 0; border-radius: 14px; max-width: 360px; width: 100%; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
@@ -296,6 +307,12 @@
         amount = (grade === 12) ? 512325 : 683100;
         duration = (grade === 12) ? 9 : 12;
         
+        // Tên học sinh không dấu chuẩn (vd: Le Dinh Nhat Bang)
+        let cleanStudentName = removeVietnameseTones(selectedStudent.name);
+        
+        // Chuỗi hiển thị tên chủ tài khoản, ghép liền mạch với dấu gạch dưới
+        let accountNameHTML = `Truong THPT Hieu Phung ${amount} <span class="name-highlight">${cleanStudentName}</span>_114002922392`;
+        
         let nameParts = selectedStudent.name.trim().split(/\s+/);
         let shortNameRaw = nameParts.length >= 2 ? nameParts.slice(-2).join(" ") : selectedStudent.name;
         let shortNameNoTones = removeVietnameseTones(shortNameRaw).toUpperCase();
@@ -303,8 +320,7 @@
         let description = `${shortNameNoTones} ${currentClass} dong BHYT ${duration} thang`;
         
         document.getElementById("mdlAccountNo").innerText = selectedStudent.id;
-        // Đã sửa: Hiển thị trực tiếp tên học sinh
-        document.getElementById("mdlAccountName").innerText = selectedStudent.name;
+        document.getElementById("mdlAccountName").innerHTML = accountNameHTML;
         document.getElementById("mdlAmount").innerText = formatCurrency(amount);
         document.getElementById("mdlDescription").innerText = description;
         
@@ -337,8 +353,8 @@
     }
 
     function generateQR() {
-        let fullNameNoTones = removeVietnameseTones(selectedStudent.name).toUpperCase();
-        let accountNameDisplay = `Truong THPT Hieu Phung ${amount} ${fullNameNoTones}_114002922392`;
+        let cleanStudentName = removeVietnameseTones(selectedStudent.name);
+        let fullNameNoTonesUpper = cleanStudentName.toUpperCase();
 
         let nameParts = selectedStudent.name.trim().split(/\s+/);
         let shortNameRaw = nameParts.length >= 2 ? nameParts.slice(-2).join(" ") : selectedStudent.name;
@@ -346,14 +362,18 @@
         
         let description = `${shortNameNoTones} ${currentClass} dong BHYT ${duration} thang`;
         
-        let url = `https://img.vietqr.io/image/vietinbank-${selectedStudent.id}-compact.png?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(accountNameDisplay)}`;
+        // QR dùng chuỗi Viết Hoa Không Dấu theo chuẩn VietQR NAPAS
+        let qrAccountName = `Truong THPT Hieu Phung ${amount} ${fullNameNoTonesUpper}_114002922392`;
+        let url = `https://img.vietqr.io/image/vietinbank-${selectedStudent.id}-compact.png?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(qrAccountName)}`;
         
         document.getElementById("alertModal").classList.add("hidden");
         if(timerInterval) clearInterval(timerInterval);
         
+        // Hiển thị giao diện bên dưới QR
+        let accountNameHTML = `Truong THPT Hieu Phung ${amount} <span class="name-highlight">${cleanStudentName}</span>_114002922392`;
+        
         document.getElementById("resAccountNo").innerText = selectedStudent.id;
-        // Đã sửa: Hiển thị trực tiếp tên học sinh bên dưới QR
-        document.getElementById("resAccountName").innerText = selectedStudent.name;
+        document.getElementById("resAccountName").innerHTML = accountNameHTML;
         document.getElementById("resAmount").innerText = formatCurrency(amount) + " VND";
         document.getElementById("resDescription").innerText = description;
         
