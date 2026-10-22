@@ -114,7 +114,7 @@
         </div>
 
         <p style="font-size: 13px; color: #6b7280; margin-top: 15px; font-style: italic;">
-            Bạn có thể chụp ảnh màn hình để lưu lại mã và dùng sau!
+            Bạn có thể chụp ảnh màn hình để lưu lại và dùng sau!
         </p>
         
         <div class="btn-group">
@@ -296,9 +296,6 @@
         amount = (grade === 12) ? 512325 : 683100;
         duration = (grade === 12) ? 9 : 12;
         
-        let fullNameNoTones = removeVietnameseTones(selectedStudent.name).toUpperCase();
-        let accountNameDisplay = `Truong THPT Hieu Phung ${amount} ${fullNameNoTones}_114002922392`;
-        
         let nameParts = selectedStudent.name.trim().split(/\s+/);
         let shortNameRaw = nameParts.length >= 2 ? nameParts.slice(-2).join(" ") : selectedStudent.name;
         let shortNameNoTones = removeVietnameseTones(shortNameRaw).toUpperCase();
@@ -306,7 +303,8 @@
         let description = `${shortNameNoTones} ${currentClass} dong BHYT ${duration} thang`;
         
         document.getElementById("mdlAccountNo").innerText = selectedStudent.id;
-        document.getElementById("mdlAccountName").innerText = accountNameDisplay;
+        // Đã sửa: Hiển thị trực tiếp tên học sinh
+        document.getElementById("mdlAccountName").innerText = selectedStudent.name;
         document.getElementById("mdlAmount").innerText = formatCurrency(amount);
         document.getElementById("mdlDescription").innerText = description;
         
@@ -354,7 +352,8 @@
         if(timerInterval) clearInterval(timerInterval);
         
         document.getElementById("resAccountNo").innerText = selectedStudent.id;
-        document.getElementById("resAccountName").innerText = accountNameDisplay;
+        // Đã sửa: Hiển thị trực tiếp tên học sinh bên dưới QR
+        document.getElementById("resAccountName").innerText = selectedStudent.name;
         document.getElementById("resAmount").innerText = formatCurrency(amount) + " VND";
         document.getElementById("resDescription").innerText = description;
         
